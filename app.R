@@ -1,18 +1,19 @@
 library(shiny)
 library(data.table)
 
+dt <- fread('stock.csv')
+dt$Date <- as.Date(dt$Date)
+
+dates = seq(Sys.Date(), Sys.Date()-6,-1)
+date1 = dates[weekdays(dates)=="Friday"]
+date2 = date1 - 7
+
+dt.display <- dt[Date==date1,.(Company, Close)]
+dt.display$yoy <- 100*(dt.display$Close - dt[Date==date2]$Close)/dt[Date==date2]$Close
+colnames(dt.display) <- c('公司', '股价($)', '增长率(%)')
+
 filename <- paste(Sys.Date(), ".csv", sep="")
 filelast <- paste(Sys.Date()-7, ".csv", sep="")
-
-dt1 <- fread(filename, col.names = c("symbol","price"))
-dt2 <- fread(filelast, col.names = c("symbol","price"))
-
-growth <- ((dt1$price - dt2$price)/dt2$price)*100
-growth <- round(growth, 3)
-company <- c('Apple', 'Google', 'Amazon', 'Facebook', 'Baidu', 'Alibaba', 'Tencent (HK)')
-
-dt <- data.table(company, dt1$price, growth)
-colnames(dt) <- c('公司', '股价($)', '增长率(%)')
 
 # Define UI for application 
 ui <- fluidPage(
@@ -28,11 +29,10 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output) {
-   output$table <- renderDataTable(dt,options=list(
+   output$table <- renderDataTable(dt.display,options=list(
      paging=FALSE, searching=FALSE, filtering=FALSE
    ))
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
