@@ -14,14 +14,14 @@ url1 <- "http://finance.google.com/finance/info?client=ig&q=NASDAQ%3AAAPL,GOOG,A
 url2 <- "http://finance.google.com/finance/info?client=ig&q=HKG%3A0700"
 
 df1 <- fromJSON(getStrFromUrl(url1))
-Sys.time(3)
+Sys.sleep(3)
 df2 <- fromJSON(getStrFromUrl(url2))
-df <- rbind(df1, df2)
+df3 <- rbind(df1[,c('l','lt_dts')], df2[,c('l','lt_dts')])
 
-df$Date <- as.Date(substr(df$lt_dts, 1, 10))
-df$Company <- c('Apple','Google','Amazon','Facebook','Baidu',
+df3$Date <- as.Date(substr(df3$lt_dts, 1, 10))
+df3$Company <- c('Apple','Google','Amazon','Facebook','Baidu',
                 'Alibaba','Tencent(HK)')
-df$Close <- as.numeric(gsub(",","",df$l))
+df3$Close <- as.numeric(gsub(",","",df3$l))
 
 # save or not
 df1 <- read.csv('stock.csv')
@@ -29,6 +29,6 @@ df1$Date <- as.Date(df1$Date)
 if (max(df$Date) == max(df1$Date)) {
   print("no need to download")
 } else {
-  df1 <- rbind(df1, df[,c('Company','Date','Close')])
+  df1 <- rbind(df1, df3[,c('Company','Date','Close')])
   write.csv(df1, "stock.csv", row.names=FALSE)
 }
